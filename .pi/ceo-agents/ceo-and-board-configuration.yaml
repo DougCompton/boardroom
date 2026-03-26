@@ -43,6 +43,14 @@ board:
     path: .pi/ceo-agents/agents/moonshot.md
     color: "#7dcfff"
 
+# optional_board:
+#   - name: Customer Oracle
+#     path: .pi/ceo-agents/agents/customer-oracle.md
+#     color: "#00f6ff"
+#   - name: Market Strategist
+#     path: .pi/ceo-agents/agents/market-strategist.md
+#     color: "#c792ea"
+
 # Optional roles present in the concept art but not active in the running board:
 # - name: Customer Oracle
 #   color: "#00f6ff"

@@ -1,12 +1,12 @@
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import { promises as fsp } from "node:fs";
-import * as os from "node:os";
+// import * as os from "node:os";
 import * as path from "node:path";
 import * as readline from "node:readline";
-import { Type } from "@sinclair/typebox";
 import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { Text, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { Type } from "@sinclair/typebox";
 import YAML from "yaml";
 
 const EXTENSION_TITLE = "CEO & Board - Strategic Decision-Making Agent Team";
@@ -18,7 +18,7 @@ const UPDATE_MESSAGE_TYPE = "ceo-board-update";
 const FOOTER_BG = "#36f0f6";
 const FOOTER_FG = "#0b0714";
 const CEO_COLOR = "#ff4fd8";
-const PANEL_BG = "#4a1e6a";
+// const PANEL_BG = "#4a1e6a";
 const PANEL_DIM = "#b69ed1";
 const PANEL_TEXT = "#f6efff";
 const PANEL_MUTED = "#9a8ab8";
