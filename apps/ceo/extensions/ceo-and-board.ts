@@ -499,9 +499,9 @@ function installFooter(ctx: ExtensionContext): void {
 	});
 }
 
-function buildStartPrompt(briefId: string, briefContent: string, config: MeetingConfig): string {
+function buildStartPrompt(run: RuntimeRun, config: MeetingConfig): string {
 	return [
-		`You are the CEO of a six-member strategic board. Start the deliberation for brief ${briefId}.`,
+		"You are the CEO of a six-member strategic board. Start the deliberation.",
 		"",
 		"Constraints:",
 		`- Time: ${config.meeting.constraints.min_time_minutes}-${config.meeting.constraints.max_time_minutes} minutes`,
@@ -511,8 +511,13 @@ function buildStartPrompt(briefId: string, briefContent: string, config: Meeting
 		"Board members:",
 		...BOARD_MEMBER_DEFINITIONS.map((definition) => `- ${definition.display_name}`),
 		"",
-		"Brief:",
-		briefContent.trim(),
+		`Brief ID: ${run.state.brief_id}`,
+		`Brief artifact path: ${run.state.paths.brief}`,
+		"",
+		"Canonical brief content:",
+		run.state.brief_content.trim(),
+		"",
+		"Do not reconstruct or guess brief file paths. Use the canonical brief content above as the source of truth.",
 		"",
 		"Process rules:",
 		"- Use converse to consult the board in bounded rounds.",
@@ -972,7 +977,7 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 					display: true,
 					details: { label: "Launch", color: CEO_COLOR },
 				});
-				pi.sendUserMessage(buildStartPrompt(run.state.brief_id, briefContent, config));
+				pi.sendUserMessage(buildStartPrompt(run, config));
 			} catch (error) {
 				await markRunFailed(runtime.meeting, config, ctx, error instanceof Error ? error.message : String(error));
 				ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
