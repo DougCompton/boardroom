@@ -1,0 +1,11 @@
+{
+  "defaultProvider": "anthropic",
+  "defaultModel": "claude-opus-4-6",
+  "theme": "ceo-board-synthwave",
+  "extensions": [
+    "../apps/ceo/extensions/ceo-and-board.ts"
+  ],
+  "themes": [
+    "themes/ceo-board-synthwave.json"
+  ]
+}

@@ -1,0 +1,52 @@
+---
+meeting:
+  constraints:
+    min_time_minutes: 2
+    max_time_minutes: 5
+    min_budget: $1
+    max_budget: $5
+    editor: "code"
+
+brief_sections:
+  - section: "## Situation"
+    description: "What is happening right now? State the facts. No opinion, no spin."
+  - section: "## Stakes"
+    description: "What's at risk? Upside if we get it right, downside if we get it wrong."
+  - section: "## Constraints"
+    description: "Budget, timeline, team capacity, technical debt, regulatory, contractual boundaries."
+  - section: "## Key Question"
+    description: "The single most important question you want the board to answer. Be specific."
+
+paths:
+  briefs: .pi/ceo-agents/briefs/
+  deliberations: .pi/ceo-agents/deliberations/
+  memos: .pi/ceo-agents/memos/
+  agents: .pi/ceo-agents/agents/
+
+board:
+  - name: Revenue
+    path: .pi/ceo-agents/agents/revenue.md
+    color: "#ff7edb"
+  - name: Product Strategist
+    path: .pi/ceo-agents/agents/product-strategist.md
+    color: "#fede5d"
+  - name: Technical Architect
+    path: .pi/ceo-agents/agents/technical-architect.md
+    color: "#ff6e96"
+  - name: Contrarian
+    path: .pi/ceo-agents/agents/contrarian.md
+    color: "#ff9e64"
+  - name: Compounder
+    path: .pi/ceo-agents/agents/compounder.md
+    color: "#72f1b8"
+  - name: Moonshot
+    path: .pi/ceo-agents/agents/moonshot.md
+    color: "#7dcfff"
+
+optional_board:
+  - name: Customer Oracle
+    path: .pi/ceo-agents/agents/customer-oracle.md
+    color: "#00f6ff"
+  - name: Market Strategist
+    path: .pi/ceo-agents/agents/market-strategist.md
+    color: "#c792ea"

@@ -1,0 +1,12 @@
+small_version: "1.0.0"
+owner: agent
+summary: Pi boardroom scaffold and extension implementation completed. The repo now contains the CEO and Board Pi extension, project-local Pi settings and theme, board personas, sample briefs, and verified build artifacts.
+resume:
+    next_steps:
+        - Launch Pi with `pi -e apps/ceo/extensions/ceo-and-board.ts`
+        - Run `/ceo-begin` and exercise a sample brief with live model credentials
+        - Inspect generated artifacts under `.pi/ceo-agents/deliberations/` and `.pi/ceo-agents/memos/`
+links: []
+replayId:
+    value: 840085fc39934e12924d1cfa912a7b1dd3fcd255658447526d651d06347146db
+    source: auto

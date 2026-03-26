@@ -1,0 +1,31 @@
+small_version: "1.0.0"
+owner: "agent"
+tasks:
+  - id: "task-1"
+    title: "Scaffold the Pi boardroom workspace"
+    steps:
+      - "Create the root Node/TypeScript project scaffold."
+      - "Create .pi board content, personas, theme, and sample briefs."
+    acceptance:
+      - "package.json and tsconfig.json exist for the Pi extension workspace."
+      - ".pi/ceo-agents contains config, personas, briefs, and theme assets."
+  - id: "task-2"
+    title: "Implement the CEO and Board Pi extension"
+    steps:
+      - "Create apps/ceo/extensions/ceo-and-board.ts."
+      - "Register /ceo-begin, converse, and end_deliberation."
+      - "Persist deliberation transcripts, state, scratch pad, board outputs, and memo artifacts."
+    acceptance:
+      - "The extension compiles against @mariozechner/pi-coding-agent."
+      - "The control plane uses Pi subprocess workers for board members."
+      - "The extension exposes the required command, tools, and synthwave-oriented TUI surfaces."
+  - id: "task-3"
+    title: "Verify and document the boardroom runtime"
+    steps:
+      - "Typecheck and build the project."
+      - "Run strict small validation."
+      - "Document the runtime and layout in README.md."
+    acceptance:
+      - "npm run check passes."
+      - "npm run build passes."
+      - "small check --strict passes."

@@ -1,0 +1,27 @@
+small_version: "1.0.0"
+owner: agent
+entries:
+    - command: small init
+      evidence: Initialized .small workspace and seeded canonical artifacts
+      notes: small init in /Users/justin/Documents/Justyn Clark Network/REPOS/boardroom
+      status: completed
+      task_id: meta/init
+      timestamp: "2026-03-26T02:22:49.195567000Z"
+    - command: npm install
+      evidence: Installed Pi extension runtime dependencies and generated package-lock.json
+      notes: Added @mariozechner/pi-coding-agent, @mariozechner/pi-tui, @sinclair/typebox, yaml, typescript, and @types/node to the workspace
+      status: completed
+      task_id: task-1
+      timestamp: "2026-03-26T02:47:30.000000000Z"
+    - command: implement apps/ceo/extensions/ceo-and-board.ts
+      evidence: Added the CEO board extension with /ceo-begin, converse, end_deliberation, synthwave widget/footer updates, Pi subprocess board workers, and artifact persistence under .pi/ceo-agents
+      notes: Also normalized .pi/settings.json to project-relative resource paths and updated README.md for runtime usage
+      status: completed
+      task_id: task-2
+      timestamp: "2026-03-26T02:50:10.000000000Z"
+    - command: npm run check && npm run build && small check --strict
+      evidence: Typecheck, build, and strict harness validation all passed; compiled extension imports cleanly from dist/apps/ceo/extensions/ceo-and-board.js
+      notes: Verified with node dynamic import after build
+      status: completed
+      task_id: task-3
+      timestamp: "2026-03-26T02:52:45.000000000Z"
