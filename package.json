@@ -8,7 +8,8 @@
   "scripts": {
     "start": "pi -e apps/ceo/extensions/ceo-and-board.ts",
     "build": "tsc -p tsconfig.json",
-    "check": "tsc -p tsconfig.json --noEmit"
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/tests/boardroom/*.test.js"
   },
   "dependencies": {
     "@mariozechner/pi-coding-agent": "^0.62.0",

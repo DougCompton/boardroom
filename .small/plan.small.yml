@@ -29,3 +29,13 @@ tasks:
       - "npm run check passes."
       - "npm run build passes."
       - "small check --strict passes."
+  - id: "task-4"
+    title: "Harden boardroom artifacts and lifecycle contracts"
+    steps:
+      - "Split persistence, path, accounting, memo, finalize, recovery, and schema logic into focused boardroom modules."
+      - "Refactor the CEO extension to persist versioned relative-path artifacts with canonical micro-USD and elapsed-ms accounting."
+      - "Add stale-run recovery, deterministic finalization ordering, atomic artifact writes, and targeted automated tests."
+    acceptance:
+      - "Persisted boardroom artifacts are versioned and contain no machine-local absolute paths."
+      - "Memo, state, and TUI accounting derive from canonical micro-USD and elapsed-ms sources."
+      - "Recovery repairs stale active runs into terminal states and the hardening test suite passes."

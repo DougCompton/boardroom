@@ -25,3 +25,15 @@ entries:
       status: completed
       task_id: task-3
       timestamp: "2026-03-26T02:52:45.000000000Z"
+    - command: implement boardroom hardening modules and extension refactor
+      evidence: Added schema, paths, accounting, memo, finalize, recovery, and state modules; refactored the CEO extension to persist versioned snake_case artifacts with relative paths, canonical micro-USD/elapsed-ms accounting, normalized member keys, and deterministic finalization.
+      notes: The stale run .pi/ceo-agents/deliberations/2026-03-18-engineering-path-k6hvhd/state.json was recovered into terminal status via the new recovery path.
+      status: completed
+      task_id: task-4
+      timestamp: "2026-03-26T16:20:00.000000000Z"
+    - command: npm run check && npm test && npm run build && small check --strict
+      evidence: Typecheck, hardening tests, build, and strict harness validation all passed after the artifact/lifecycle refactor.
+      notes: The test suite covers path hygiene, canonical accounting/duration rendering, recovery, finalization, and atomic writes.
+      status: completed
+      task_id: task-4
+      timestamp: "2026-03-26T16:23:00.000000000Z"
