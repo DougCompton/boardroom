@@ -1,41 +1,44 @@
 small_version: "1.0.0"
-owner: "agent"
+owner: agent
 tasks:
-  - id: "task-1"
-    title: "Scaffold the Pi boardroom workspace"
-    steps:
-      - "Create the root Node/TypeScript project scaffold."
-      - "Create .pi board content, personas, theme, and sample briefs."
-    acceptance:
-      - "package.json and tsconfig.json exist for the Pi extension workspace."
-      - ".pi/ceo-agents contains config, personas, briefs, and theme assets."
-  - id: "task-2"
-    title: "Implement the CEO and Board Pi extension"
-    steps:
-      - "Create apps/ceo/extensions/ceo-and-board.ts."
-      - "Register /ceo-begin, converse, and end_deliberation."
-      - "Persist deliberation transcripts, state, scratch pad, board outputs, and memo artifacts."
-    acceptance:
-      - "The extension compiles against @mariozechner/pi-coding-agent."
-      - "The control plane uses Pi subprocess workers for board members."
-      - "The extension exposes the required command, tools, and synthwave-oriented TUI surfaces."
-  - id: "task-3"
-    title: "Verify and document the boardroom runtime"
-    steps:
-      - "Typecheck and build the project."
-      - "Run strict small validation."
-      - "Document the runtime and layout in README.md."
-    acceptance:
-      - "npm run check passes."
-      - "npm run build passes."
-      - "small check --strict passes."
-  - id: "task-4"
-    title: "Harden boardroom artifacts and lifecycle contracts"
-    steps:
-      - "Split persistence, path, accounting, memo, finalize, recovery, and schema logic into focused boardroom modules."
-      - "Refactor the CEO extension to persist versioned relative-path artifacts with canonical micro-USD and elapsed-ms accounting."
-      - "Add stale-run recovery, deterministic finalization ordering, atomic artifact writes, and targeted automated tests."
-    acceptance:
-      - "Persisted boardroom artifacts are versioned and contain no machine-local absolute paths."
-      - "Memo, state, and TUI accounting derive from canonical micro-USD and elapsed-ms sources."
-      - "Recovery repairs stale active runs into terminal states and the hardening test suite passes."
+    - id: task-1
+      title: Scaffold the Pi boardroom workspace
+      steps:
+        - Create the root Node/TypeScript project scaffold.
+        - Create .pi board content, personas, theme, and sample briefs.
+      acceptance:
+        - package.json and tsconfig.json exist for the Pi extension workspace.
+        - .pi/ceo-agents contains config, personas, briefs, and theme assets.
+    - id: task-2
+      title: Implement the CEO and Board Pi extension
+      steps:
+        - Create apps/ceo/extensions/ceo-and-board.ts.
+        - Register /ceo-begin, converse, and end_deliberation.
+        - Persist deliberation transcripts, state, scratch pad, board outputs, and memo artifacts.
+      acceptance:
+        - The extension compiles against @mariozechner/pi-coding-agent.
+        - The control plane uses Pi subprocess workers for board members.
+        - The extension exposes the required command, tools, and synthwave-oriented TUI surfaces.
+    - id: task-3
+      title: Verify and document the boardroom runtime
+      steps:
+        - Typecheck and build the project.
+        - Run strict small validation.
+        - Document the runtime and layout in README.md.
+      acceptance:
+        - npm run check passes.
+        - npm run build passes.
+        - small check --strict passes.
+    - id: task-4
+      title: Harden boardroom artifacts and lifecycle contracts
+      steps:
+        - Split persistence, path, accounting, memo, finalize, recovery, and schema logic into focused boardroom modules.
+        - Refactor the CEO extension to persist versioned relative-path artifacts with canonical micro-USD and elapsed-ms accounting.
+        - Add stale-run recovery, deterministic finalization ordering, atomic artifact writes, and targeted automated tests.
+      acceptance:
+        - Persisted boardroom artifacts are versioned and contain no machine-local absolute paths.
+        - Memo, state, and TUI accounting derive from canonical micro-USD and elapsed-ms sources.
+        - Recovery repairs stale active runs into terminal states and the hardening test suite passes.
+    - id: task-5
+      title: Reposition Boardroom as an opinionated Pi workflow and executive deliberation pack, not a standalone umbrella system.
+      status: completed

@@ -37,3 +37,15 @@ entries:
       status: completed
       task_id: task-4
       timestamp: "2026-03-26T16:23:00.000000000Z"
+    - evidence: Added task task-5 via small plan --add
+      notes: Reposition Boardroom as an opinionated Pi workflow and executive deliberation pack, not a standalone umbrella system.
+      replayId: 17dc0c90e0cfa8716487c70ab73911c5789105b44cde045112b39464e2b3df62
+      status: pending
+      task_id: task-5
+      timestamp: "2026-03-27T06:28:59.218611000Z"
+    - evidence: README.md
+      notes: Updated README framing so Boardroom is an opinionated Pi workflow pack for executive deliberation inside the broader Pi/Pai stack.
+      replayId: 17dc0c90e0cfa8716487c70ab73911c5789105b44cde045112b39464e2b3df62
+      status: completed
+      task_id: task-5
+      timestamp: "2026-03-27T06:45:23.723818000Z"

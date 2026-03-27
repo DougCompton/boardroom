@@ -1,5 +1,7 @@
 # boardroom
-Boardroom is a Pi-based multi-agent decision system that runs CEO and specialist board deliberations from structured briefs, then produces ranked recommendations, tradeoffs, and final memos.
+Boardroom is an opinionated Pi workflow for executive deliberation. It runs CEO and specialist board sessions from structured briefs, then produces ranked recommendations, tradeoffs, and final decision memos.
+
+In the broader stack, Pi is the substrate, Pai is the front door, and Boardroom is a reusable workflow pack that runs inside Pi.
 
 ## Runtime
 
