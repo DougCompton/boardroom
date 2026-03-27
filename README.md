@@ -1,7 +1,7 @@
 # boardroom
-Boardroom is an opinionated Pi workflow for executive deliberation. It runs CEO and specialist board sessions from structured briefs, then produces ranked recommendations, tradeoffs, and final decision memos.
+Boardroom is the executive deliberation pack in the Pi-native operator stack. It runs CEO and specialist board sessions from structured briefs, then produces ranked recommendations, tradeoffs, and final decision memos.
 
-In the broader stack, Pi is the substrate, Pai is the front door, and Boardroom is a reusable workflow pack that runs inside Pi.
+In the broader stack, Pi is the substrate, Pai is the front-door operating assistant and operator shell, and Boardroom is a reusable pack that runs inside Pi. That is not a weakness. That is the packaging unit.
 
 ## Runtime
 
