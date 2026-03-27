@@ -5,14 +5,39 @@ Boardroom is a Pi-based multi-agent decision system that runs CEO and specialist
 
 The working extension lives at `apps/ceo/extensions/ceo-and-board.ts`. Project-local Pi settings in `.pi/settings.json` load that extension plus the bundled synthwave theme.
 
-Typical flow:
+Typical interactive flow:
 
 ```bash
 npm install
 pi -e apps/ceo/extensions/ceo-and-board.ts
 ```
 
-Inside Pi, run `/ceo-begin` and pick a brief from `.pi/ceo-agents/briefs/`.
+Kickoff options:
+
+- Interactive slash command: `/ceo-begin`
+- Deterministic text trigger: `ceo-begin <brief-id>`
+
+Examples:
+
+```bash
+# open the TUI, then trigger a specific brief
+pi -e apps/ceo/extensions/ceo-and-board.ts
+ceo-begin 2026-03-18-engineering-path
+
+# or use the slash command in the interactive session
+/ceo-begin
+```
+
+The deterministic text trigger exists on purpose so Boardroom is operable by both humans and agents without depending on fragile slash-command UI parsing.
+
+## Operability
+
+Boardroom is designed to be:
+
+- human-operable through the interactive Pi interface
+- agent-operable through deterministic text input and persisted relative-path artifacts
+
+This matters because real users will hand Boardroom to LLMs. Trigger surfaces, artifact paths, and closeout behavior need to be machine-friendly, not just visually usable in the TUI.
 
 ## Layout
 
@@ -26,3 +51,10 @@ Inside Pi, run `/ceo-begin` and pick a brief from `.pi/ceo-agents/briefs/`.
 
 - `npm run check`: TypeScript typecheck
 - `npm run build`: compile the extension sources to `dist/`
+- `npm test`: hardening and startup regression suite
+
+Recent live proof points:
+
+- fresh end-to-end run completed with board outputs plus memo
+- deterministic kickoff path validated in practice
+- persisted artifacts remained relative-path based

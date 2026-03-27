@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import { promises as fsp } from "node:fs";
 import * as path from "node:path";
 import * as readline from "node:readline";
-import type { ExtensionAPI, ExtensionContext } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { Text, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
 import { Type } from "@sinclair/typebox";
 import YAML from "yaml";
@@ -175,6 +175,12 @@ function backgroundHex(hex: string, text: string): string {
 
 function nowIso(): string {
 	return new Date().toISOString();
+}
+
+async function debugLog(repoRootAbs: string, line: string): Promise<void> {
+	const debugPath = path.join(repoRootAbs, ".pi/ceo-agents/debug.log");
+	await ensureDir(path.dirname(debugPath));
+	await fsp.appendFile(debugPath, `${nowIso()} ${line}\n`, "utf8").catch(() => undefined);
 }
 
 function shortRunToken(): string {
@@ -835,6 +841,99 @@ async function restoreStateFromBranch(ctx: ExtensionContext): Promise<RuntimeRun
 	return undefined;
 }
 
+async function startDeliberation(requestedId: string, ctx: ExtensionCommandContext, pi: ExtensionAPI): Promise<void> {
+	let config: MeetingConfig | undefined;
+	await debugLog(ctx.cwd, `startDeliberation requested_id=${JSON.stringify(requestedId)}`);
+	try {
+		config = runtime.config = await readConfig(ctx.cwd);
+		await recoverRuns(ctx.cwd, config);
+		const briefs = await listBriefs(ctx.cwd, config);
+		if (briefs.length === 0) {
+			ctx.ui.notify("No briefs found under .pi/ceo-agents/briefs", "error");
+			return;
+		}
+
+		const selectedId =
+			requestedId.trim() ||
+			(await ctx.ui.select(
+				"Pick a brief",
+				briefs.map((brief) => brief.id),
+			));
+		if (!selectedId) return;
+
+		await debugLog(ctx.cwd, `startDeliberation selected_id=${JSON.stringify(selectedId)}`);
+		const selectedBrief = briefs.find((brief) => brief.id === selectedId);
+		if (!selectedBrief) {
+			ctx.ui.notify(`Unknown brief: ${selectedId}`, "error");
+			return;
+		}
+
+		const runId = `${selectedBrief.id}-${shortRunToken()}`;
+		await debugLog(ctx.cwd, `startDeliberation run_id=${runId}`);
+		await supersedeOpenRunsForBrief(ctx.cwd, config, selectedBrief.id, runId);
+
+		const briefContent = await fsp.readFile(selectedBrief.absolute_path, "utf8");
+		const run = createRuntimeRun({
+			repo_root_abs: ctx.cwd,
+			config,
+			brief_id: selectedBrief.id,
+			brief_rel_path: selectedBrief.relative_path,
+			brief_content: briefContent,
+			run_id: runId,
+			member_session_root_rel: SESSION_ROOT_REL,
+		});
+
+		await ensureDir(run.deliberation_dir_abs);
+		await ensureDir(run.board_output_dir_abs);
+		await ensureDir(run.memo_dir_abs);
+		await ensureDir(resolveRepoPath(ctx.cwd, SESSION_ROOT_REL));
+		await ensureFile(run.transcript_abs_path);
+		for (const sessionDir of Object.values(run.member_session_dirs_abs)) {
+			await ensureDir(sessionDir);
+		}
+
+		runtime.meeting = run;
+		await persistRunState(run);
+		await writeScratchPad(run, config);
+		await recordUpdate(run, "meeting_started", {
+			paths: {
+				brief: run.state.paths.brief,
+				scratch_pad: run.state.paths.scratch_pad,
+			},
+		});
+
+		pi.appendEntry(STATE_ENTRY_TYPE, {
+			status: run.state.status,
+			briefId: run.state.brief_id,
+			runId: run.state.run_id,
+			statePath: run.state.paths.state,
+		});
+
+		const ceoModel = findModel(ctx.modelRegistry, MODELS.ceo.provider, MODELS.ceo.id);
+		if (ceoModel) {
+			const changed = await pi.setModel(ceoModel);
+			if (!changed) ctx.ui.notify(`CEO model unavailable: ${MODELS.ceo.label}`, "warning");
+		}
+
+		run.state.status = "running";
+		await persistRunState(run);
+		updateWidget(ctx, config, run);
+		ctx.ui.setWorkingMessage(`Preparing ${run.state.brief_id}...`);
+		pi.sendMessage({
+			customType: UPDATE_MESSAGE_TYPE,
+			content: `Selected ${run.state.brief_id}. CEO scratch pad refreshed at ${run.state.paths.scratch_pad}.`,
+			display: true,
+			details: { label: "Launch", color: CEO_COLOR },
+		});
+		pi.sendUserMessage(buildStartPrompt(run, config));
+		await debugLog(ctx.cwd, `startDeliberation dispatched run_id=${run.state.run_id}`);
+	} catch (error) {
+		await debugLog(ctx.cwd, `startDeliberation error=${JSON.stringify(error instanceof Error ? error.message : String(error))}`);
+		await markRunFailed(runtime.meeting, config, ctx, error instanceof Error ? error.message : String(error));
+		ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
+	}
+}
+
 async function initialize(ctx: ExtensionContext): Promise<void> {
 	try {
 		runtime.config = await readConfig(ctx.cwd);
@@ -893,95 +992,19 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 		await initialize(ctx);
 	});
 
+	pi.on("input", async (event, ctx) => {
+		const text = event.text.trim();
+		await debugLog(ctx.cwd, `input source=${event.source} text=${JSON.stringify(text)}`);
+		const match = /^ceo-begin\s+(.+)$/i.exec(text);
+		if (!match) return { action: "continue" };
+		await startDeliberation(match[1] ?? "", ctx as ExtensionCommandContext, pi);
+		return { action: "handled" };
+	});
+
 	pi.registerCommand("ceo-begin", {
 		description: "Start a CEO board deliberation",
 		handler: async (rawArgs, ctx) => {
-			let config: MeetingConfig | undefined;
-			try {
-				config = runtime.config = await readConfig(ctx.cwd);
-				await recoverRuns(ctx.cwd, config);
-				const briefs = await listBriefs(ctx.cwd, config);
-				if (briefs.length === 0) {
-					ctx.ui.notify("No briefs found under .pi/ceo-agents/briefs", "error");
-					return;
-				}
-
-				const requestedId = rawArgs.trim();
-				const selectedId =
-					requestedId ||
-					(await ctx.ui.select(
-						"Pick a brief",
-						briefs.map((brief) => brief.id),
-					));
-				if (!selectedId) return;
-
-				const selectedBrief = briefs.find((brief) => brief.id === selectedId);
-				if (!selectedBrief) {
-					ctx.ui.notify(`Unknown brief: ${selectedId}`, "error");
-					return;
-				}
-
-				const runId = `${selectedBrief.id}-${shortRunToken()}`;
-				await supersedeOpenRunsForBrief(ctx.cwd, config, selectedBrief.id, runId);
-
-				const briefContent = await fsp.readFile(selectedBrief.absolute_path, "utf8");
-				const run = createRuntimeRun({
-					repo_root_abs: ctx.cwd,
-					config,
-					brief_id: selectedBrief.id,
-					brief_rel_path: selectedBrief.relative_path,
-					brief_content: briefContent,
-					run_id: runId,
-					member_session_root_rel: SESSION_ROOT_REL,
-				});
-
-				await ensureDir(run.deliberation_dir_abs);
-				await ensureDir(run.board_output_dir_abs);
-				await ensureDir(run.memo_dir_abs);
-				await ensureDir(resolveRepoPath(ctx.cwd, SESSION_ROOT_REL));
-				await ensureFile(run.transcript_abs_path);
-				for (const sessionDir of Object.values(run.member_session_dirs_abs)) {
-					await ensureDir(sessionDir);
-				}
-
-				runtime.meeting = run;
-				await persistRunState(run);
-				await writeScratchPad(run, config);
-				await recordUpdate(run, "meeting_started", {
-					paths: {
-						brief: run.state.paths.brief,
-						scratch_pad: run.state.paths.scratch_pad,
-					},
-				});
-
-				pi.appendEntry(STATE_ENTRY_TYPE, {
-					status: run.state.status,
-					briefId: run.state.brief_id,
-					runId: run.state.run_id,
-					statePath: run.state.paths.state,
-				});
-
-				const ceoModel = findModel(ctx.modelRegistry, MODELS.ceo.provider, MODELS.ceo.id);
-				if (ceoModel) {
-					const changed = await pi.setModel(ceoModel);
-					if (!changed) ctx.ui.notify(`CEO model unavailable: ${MODELS.ceo.label}`, "warning");
-				}
-
-				run.state.status = "running";
-				await persistRunState(run);
-				updateWidget(ctx, config, run);
-				ctx.ui.setWorkingMessage(`Preparing ${run.state.brief_id}...`);
-				pi.sendMessage({
-					customType: UPDATE_MESSAGE_TYPE,
-					content: `Selected ${run.state.brief_id}. CEO scratch pad refreshed at ${run.state.paths.scratch_pad}.`,
-					display: true,
-					details: { label: "Launch", color: CEO_COLOR },
-				});
-				pi.sendUserMessage(buildStartPrompt(run, config));
-			} catch (error) {
-				await markRunFailed(runtime.meeting, config, ctx, error instanceof Error ? error.message : String(error));
-				ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
-			}
+			await startDeliberation(rawArgs, ctx, pi);
 		},
 	});
 
