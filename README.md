@@ -1,4 +1,9 @@
 # boardroom
+
+[![Node 20+](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Pi pack](https://img.shields.io/badge/runtime-Pi%20pack-6f42c1)](https://github.com/mariozechner/pi-coding-agent)
+
 Boardroom is an opinionated Pi workflow pack for executive deliberation. It runs CEO-led board sessions from structured briefs, collects specialist responses through Pi subprocess workers, and writes durable memo artifacts back into the repo.
 
 In the broader stack, Pi is the substrate, Pai is the front-door operator shell, and Boardroom is a reusable pack that runs inside Pi. This repo is the pack implementation, not a standalone product shell.
