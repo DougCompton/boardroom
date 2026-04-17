@@ -24,7 +24,7 @@ This repository contains the pack implementation, sample board personas, sample 
 
 ## Repo status
 
-This repo is public-source release ready for GitHub.
+This repo is public release ready for GitHub.
 
 It intentionally keeps sample configuration and sample briefs in version control, while generated runtime artifacts like session logs, scratch pads, deliberation runs, memos, and debug logs are ignored.
 
@@ -105,4 +105,4 @@ That means:
 
 ## License
 
-This repository is released under BUSL-1.1. That keeps the code visible and reviewable while protecting commercial and production use. See `LICENSE.md`.
+This repository is released under Apache License 2.0. It is open source, commercially usable, and includes an explicit patent grant. See `LICENSE.md`.
