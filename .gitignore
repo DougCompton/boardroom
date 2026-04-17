@@ -140,3 +140,13 @@ vite.config.ts.timestamp-*
 .small-cache/
 .small-runs/
 .small-archive/
+
+# Boardroom generated runtime artifacts
+.pi/ceo-agents/debug.log
+.pi/ceo-agents/sessions/**
+!.pi/ceo-agents/sessions/.gitkeep
+.pi/ceo-agents/deliberations/**
+!.pi/ceo-agents/deliberations/.gitkeep
+.pi/ceo-agents/memos/**
+!.pi/ceo-agents/memos/.gitkeep
+.pi/ceo-agents/expertise/ceo-scratch-pad.md

@@ -1,50 +1,66 @@
-# boardroom
+# Boardroom
 
 [![Node 20+](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Pi pack](https://img.shields.io/badge/runtime-Pi%20pack-6f42c1)](https://github.com/mariozechner/pi-coding-agent)
 
-Boardroom is an opinionated Pi workflow pack for executive deliberation. It runs CEO-led board sessions from structured briefs, collects specialist responses through Pi subprocess workers, and writes durable memo artifacts back into the repo.
+Boardroom is a Pi-based executive deliberation pack from Justin Clark Network.
 
-In the broader stack, Pi is the substrate, Pai is the front-door operator shell, and Boardroom is a reusable pack that runs inside Pi. This repo is the pack implementation, not a standalone product shell.
+It runs CEO-led board sessions from structured briefs, fans out bounded prompts to specialist board members through Pi subprocess workers, and writes durable memo artifacts back into the repo.
 
-## Current repo state
+In the broader stack, Pi is the substrate, Pai is the front door, and Boardroom is a reusable pack that runs inside Pi.
 
-Current runtime pieces checked into this repo:
+## What it is
 
-- Pi extension entrypoint: `apps/ceo/extensions/ceo-and-board.ts`
-- Supporting runtime modules: `apps/ceo/extensions/boardroom/*.ts`
-- Project-local Pi settings: `.pi/settings.json`
-- Board configuration: `.pi/ceo-agents/ceo-and-board-configuration.yaml`
-- Board personas: `.pi/ceo-agents/agents/*.md`
-- Seed briefs: `.pi/ceo-agents/briefs/<brief-id>/brief.md`
-- SMALL governance artifacts: `.small/*.small.yml`
+Boardroom gives a Pi operator a structured way to:
 
-There is no `docs/` directory and no GitHub Actions workflow in this repo right now. The README is the primary operator-facing doc.
+- select a decision brief
+- run bounded multi-member board rounds
+- synthesize responses through a CEO control plane
+- close a session into durable memo artifacts
+- recover stale runs without leaking machine-local paths into saved outputs
 
-## Runtime
+This repository contains the pack implementation, sample board personas, sample briefs, tests, and the runtime wiring needed to launch it locally.
 
-Boardroom targets Node 20+ and uses the Pi coding agent packages declared in `package.json`.
+## Repo status
 
-Setup and launch:
+This repo is public-source release ready for GitHub.
+
+It intentionally keeps sample configuration and sample briefs in version control, while generated runtime artifacts like session logs, scratch pads, deliberation runs, memos, and debug logs are ignored.
+
+## Runtime requirements
+
+- Node.js 20+
+- npm
+- Pi coding agent available on PATH as `pi`
+
+## Quick start
 
 ```bash
 npm install
+npm run check
+npm test
 npm start
 ```
 
-`npm start` expands to:
+`npm start` launches:
 
 ```bash
 pi -e apps/ceo/extensions/ceo-and-board.ts
 ```
 
-You can also launch Pi directly with the same extension path. Project-local Pi settings in `.pi/settings.json` set the default provider/model, load the extension, and load the bundled `ceo-board-synthwave` theme.
+Project-local Pi settings live in `.pi/settings.json` and load:
 
-Kickoff options:
+- the Boardroom extension
+- the bundled `ceo-board-synthwave` theme
+- the default provider and model configuration
 
-- Interactive slash command: `/ceo-begin`
-- Deterministic text trigger: `ceo-begin <brief-id>`
+## Operator entrypoints
+
+Kick off a board session with either:
+
+- `/ceo-begin`
+- `ceo-begin <brief-id>`
 
 Example:
 
@@ -52,62 +68,41 @@ Example:
 ceo-begin 2026-03-18-engineering-path
 ```
 
-The deterministic text trigger exists on purpose so Boardroom is operable by both humans and agents without relying on slash-command UI parsing.
+The deterministic text trigger is deliberate so the pack is operable by both humans and agents.
 
-## How the runtime behaves
+## Repository layout
 
-At session start, the extension:
-
-- loads `.pi/ceo-agents/ceo-and-board-configuration.yaml`
-- repairs stale runs through recovery logic
-- restores the last in-branch board state when possible
-- renders the CEO/board widget and footer in the Pi TUI
-
-During a deliberation, the CEO uses two Pi tools exposed by the extension:
-
-- `converse`: sends bounded prompts to one or more board members and collects responses
-- `end_deliberation`: gathers final positions, synthesizes the memo, and closes the run
-
-Board members run as Pi subprocess workers with constrained tools (`read,grep,find,ls`). The runtime tracks elapsed time and micro-USD costs, persists relative-path artifacts, and blocks machine-local absolute paths from leaking into persisted outputs.
-
-## Layout
-
-- `apps/ceo/extensions/ceo-and-board.ts`: main control plane, commands, tools, TUI integration
-- `apps/ceo/extensions/boardroom/accounting.ts`: canonical cost and duration accounting helpers
-- `apps/ceo/extensions/boardroom/finalize.ts`: closeout ordering and memo finalization
-- `apps/ceo/extensions/boardroom/memo.ts`: memo rendering
-- `apps/ceo/extensions/boardroom/paths.ts`: repo-relative path validation and normalization
-- `apps/ceo/extensions/boardroom/recovery.ts`: stale-run repair and supersession
-- `apps/ceo/extensions/boardroom/schema.ts`: runtime types and board definitions
-- `apps/ceo/extensions/boardroom/state.ts`: atomic artifact persistence and runtime state helpers
-- `.pi/ceo-agents/agents/*.md`: board role personas
-- `.pi/ceo-agents/briefs/<brief-id>/brief.md`: decision briefs
-- `.pi/ceo-agents/deliberations/<brief-id>-<session-id>/`: transcript, state, and per-member board outputs
-- `.pi/ceo-agents/memos/<brief-id>-<session-id>/memo.md`: final memo artifact
-- `.pi/ceo-agents/sessions/<member>/`: Pi worker session logs
-- `.pi/ceo-agents/expertise/ceo-scratch-pad.md`: CEO scratch pad artifact
+```text
+apps/ceo/extensions/ceo-and-board.ts          Main control plane and Pi integration
+apps/ceo/extensions/boardroom/*.ts            Runtime modules for state, recovery, paths, memo, and accounting
+.pi/settings.json                             Project-local Pi settings
+.pi/ceo-agents/ceo-and-board-configuration.yaml  Board config and runtime constraints
+.pi/ceo-agents/agents/*.md                    Board personas
+.pi/ceo-agents/briefs/<brief-id>/brief.md     Sample decision briefs
+.pi/themes/ceo-board-synthwave.json           Bundled theme
+.small/*.small.yml                            SMALL governance artifacts
+tests/boardroom/*.test.ts                     Runtime hardening tests
+```
 
 ## Validation
 
-Available validation commands:
+Available checks:
 
-- `npm run check`: TypeScript typecheck
-- `npm run build`: compile TypeScript to `dist/`
-- `npm test`: build plus the Node test suite in `tests/boardroom/*.test.ts`
-- `small check --strict`: validate SMALL governance artifacts
+- `npm run check`
+- `npm run build`
+- `npm test`
+- `small check --strict`
 
-Verified on 2026-03-30 in the local repo:
+## Product positioning
 
-- `npm run check` ✅
-- `npm run build` ✅
-- `npm test` ✅ (11 tests)
-- `small check --strict` ✅
+Boardroom is a Justin Clark Network product and a Pi-native pack, not a standalone umbrella shell.
 
-## Notes on operability
+That means:
 
-Boardroom is intentionally designed to be:
+- Pi provides the runtime substrate
+- Pai is the broader operator surface
+- Boardroom provides the deliberation workflow pack
 
-- human-operable through the Pi TUI
-- agent-operable through deterministic text input and durable repo-relative artifacts
+## License
 
-That is why the repo keeps canonical brief content in the kickoff prompt, uses deterministic artifact locations, and treats the text trigger path as a first-class interface rather than a fallback.
+This repository is released under BUSL-1.1. That keeps the code visible and reviewable while protecting commercial and production use. See `LICENSE.md`.

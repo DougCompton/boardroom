@@ -3,7 +3,7 @@ owner: agent
 entries:
     - command: small init
       evidence: Initialized .small workspace and seeded canonical artifacts
-      notes: small init in /Users/justin/Documents/Justyn Clark Network/REPOS/boardroom
+      notes: small init in the local boardroom workspace
       status: completed
       task_id: meta/init
       timestamp: "2026-03-26T02:22:49.195567000Z"
