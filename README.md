@@ -36,6 +36,20 @@ It intentionally keeps sample configuration and sample briefs in version control
 
 ## Quick start
 
+### Use the npm package
+
+```bash
+npm install @justyn-clark/boardroom
+npx boardroom init
+npx boardroom start
+```
+
+`boardroom init` copies the bundled `.pi` and `.small` assets into the current project and rewrites `.pi/settings.json` to point at the installed package extension.
+
+`boardroom start` launches Pi with the packaged Boardroom extension directly.
+
+### Work from this repo
+
 ```bash
 npm install
 npm run check
@@ -91,6 +105,7 @@ Available checks:
 - `npm run check`
 - `npm run build`
 - `npm test`
+- `npm run package:check`
 - `small check --strict`
 
 ## Product positioning

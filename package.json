@@ -26,7 +26,7 @@
     "node": ">=20"
   },
   "files": [
-    "apps",
+    "dist",
     ".pi",
     ".small",
     "AGENTS.md",
@@ -34,11 +34,20 @@
     "LICENSE.md",
     "package.json"
   ],
+  "bin": {
+    "boardroom": "dist/src/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "pi -e apps/ceo/extensions/ceo-and-board.ts",
-    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc -p tsconfig.json && chmod +x dist/src/cli.js",
     "check": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --test dist/tests/boardroom/*.test.js"
+    "test": "npm run build && node --test dist/tests/boardroom/*.test.js",
+    "package:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run check && npm test && npm run package:check"
   },
   "dependencies": {
     "@mariozechner/pi-coding-agent": "^0.62.0",

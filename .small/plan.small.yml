@@ -42,3 +42,14 @@ tasks:
     - id: task-5
       title: Reposition Boardroom as an opinionated Pi workflow and executive deliberation pack, not a standalone umbrella system.
       status: completed
+    - id: task-6
+      title: Make Boardroom publish-ready as an npm package with a usable CLI surface.
+      status: completed
+      steps:
+        - Add a Boardroom CLI that can initialize project assets and launch Pi with the packaged extension.
+        - Harden package metadata and publish scripts for deterministic npm release validation.
+        - Update README install and validation docs to match the npm distribution flow.
+      acceptance:
+        - "boardroom init and boardroom start are available through the package bin."
+        - "npm pack --dry-run includes the intended runtime assets and succeeds after validation."
+        - "README documents the npm install path and release checks."

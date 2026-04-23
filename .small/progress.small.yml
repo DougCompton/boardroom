@@ -49,3 +49,15 @@ entries:
       status: completed
       task_id: task-5
       timestamp: "2026-03-27T06:45:23.723818000Z"
+    - command: implement src/cli.ts and harden package metadata for npm distribution
+      evidence: Added the Boardroom CLI with init and start commands, rewrote package.json with a bin entry, publishConfig, package validation scripts, and updated README install flow for npm usage.
+      notes: boardroom init now copies the bundled .pi and .small assets into a target project and rewrites .pi/settings.json to point at the packaged extension.
+      status: completed
+      task_id: task-6
+      timestamp: "2026-04-23T07:18:20.000000000Z"
+    - command: npm run check && npm test && node dist/src/cli.js help && node dist/src/cli.js init <tmpdir> && npm run package:check && small check --strict
+      evidence: Typecheck, tests, CLI help, CLI init smoke test, npm pack dry-run, and strict SMALL validation all passed for the npm-ready package surface.
+      notes: npm pack --dry-run produced a tarball that includes dist/, bundled .pi assets, bundled .small artifacts, README.md, AGENTS.md, LICENSE.md, and package.json.
+      status: completed
+      task_id: task-6
+      timestamp: "2026-04-23T07:18:55.000000000Z"
