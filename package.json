@@ -1,10 +1,10 @@
 {
-  "name": "@justyn-clark/boardroom",
+  "name": "@justynclark/boardroom",
   "version": "0.1.0",
   "description": "Boardroom is a Pi-based executive deliberation pack from Justin Clark Network.",
   "license": "Apache-2.0",
   "author": "Justin Clark Network",
-  "homepage": "https://github.com/justyn-clark/boardroom",
+  "homepage": "https://agentboardroom.dev",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/justyn-clark/boardroom.git"

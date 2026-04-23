@@ -3,6 +3,7 @@
 [![Node 20+](https://img.shields.io/badge/node-20%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Pi pack](https://img.shields.io/badge/runtime-Pi%20pack-6f42c1)](https://github.com/mariozechner/pi-coding-agent)
+[![npm version](https://img.shields.io/npm/v/%40justynclark%2Fboardroom?logo=npm&color=cb3837)](https://www.npmjs.com/package/@justynclark/boardroom)
 
 Boardroom is a Pi-based executive deliberation pack from Justin Clark Network.
 
@@ -38,8 +39,10 @@ It intentionally keeps sample configuration and sample briefs in version control
 
 ### Use the npm package
 
+Boardroom is available on npm as [`@justynclark/boardroom`](https://www.npmjs.com/package/@justynclark/boardroom).
+
 ```bash
-npm install @justyn-clark/boardroom
+npm install @justynclark/boardroom
 npx boardroom init
 npx boardroom start
 ```
@@ -47,6 +50,8 @@ npx boardroom start
 `boardroom init` copies the bundled `.pi` and `.small` assets into the current project and rewrites `.pi/settings.json` to point at the installed package extension.
 
 `boardroom start` launches Pi with the packaged Boardroom extension directly.
+
+For the hosted docs and install guide, see [agentboardroom.dev](https://agentboardroom.dev/docs/installation).
 
 ### Work from this repo
 

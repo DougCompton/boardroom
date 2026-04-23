@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const cliPath = fileURLToPath(import.meta.url);
 const packageRoot = path.resolve(path.dirname(cliPath), "..", "..");
-const packageName = "@justyn-clark/boardroom";
+const packageName = "@justynclark/boardroom";
 const extensionPath = path.join(packageRoot, "dist", "apps", "ceo", "extensions", "ceo-and-board.js");
 const packagePiDir = path.join(packageRoot, ".pi");
 const packageSmallDir = path.join(packageRoot, ".small");
