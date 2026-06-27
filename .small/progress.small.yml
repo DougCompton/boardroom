@@ -61,3 +61,15 @@ entries:
       status: completed
       task_id: task-6
       timestamp: "2026-04-23T07:18:55.000000000Z"
+    - evidence: Added task task-7 via small plan --add
+      notes: Make Boardroom model selection configurable and provider-agnostic
+      replayId: 17dc0c90e0cfa8716487c70ab73911c5789105b44cde045112b39464e2b3df62
+      status: pending
+      task_id: task-7
+      timestamp: "2026-06-27T05:20:43.254371000Z"
+    - evidence: Added configurable Boardroom model policy, /ceo-models command, model snapshot persistence, docs, and tests; removed Anthropic-pinned .pi defaults; validation passed with npm run check, npm test, and small check --strict.
+      notes: "Default model policy is models.default: current so Boardroom inherits Pi's selected model unless overridden by YAML, env, or /ceo-models."
+      replayId: 17dc0c90e0cfa8716487c70ab73911c5789105b44cde045112b39464e2b3df62
+      status: completed
+      task_id: task-7
+      timestamp: "2026-06-27T05:20:43.359571000Z"

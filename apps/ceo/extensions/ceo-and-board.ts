@@ -22,6 +22,15 @@ import {
 	toRepoRelative,
 	validateConfig,
 } from "./boardroom/paths.js";
+import {
+	formatModelPreference,
+	formatModelSelection,
+	parseModelLocator,
+	resolveBoardroomModels,
+	type BoardroomModelPreferences,
+	type BoardroomModelSelections,
+	type BoardroomModelRole,
+} from "./boardroom/models.js";
 import { recoverRuns, supersedeOpenRunsForBrief } from "./boardroom/recovery.js";
 import {
 	BOARD_MEMBER_DEFINITIONS,
@@ -30,6 +39,8 @@ import {
 	type BoardRoleName,
 	type FinalBoardMemberMemo,
 	type MeetingConfig,
+	type ModelPreference,
+	type PersistedModelSelection,
 	type RunStatus,
 	type RuntimeRun,
 	boardMemberDefinitionFromDisplayName,
@@ -71,6 +82,7 @@ interface BriefOption {
 interface RuntimeState {
 	config: MeetingConfig | undefined;
 	meeting: RuntimeRun | undefined;
+	model_preferences: BoardroomModelPreferences;
 }
 
 interface WorkerPromptResult {
@@ -115,22 +127,10 @@ type RpcAgentEndEvent = {
 	}>;
 };
 
-const MODELS = {
-	ceo: {
-		provider: "anthropic",
-		id: "claude-opus-4-6",
-		label: "anthropic/claude-opus-4-6 1M",
-	},
-	board: {
-		provider: "anthropic",
-		id: "claude-sonnet-4-6",
-		label: "anthropic/claude-sonnet-4-6 1M",
-	},
-} as const;
-
 const runtime: RuntimeState = {
 	config: undefined,
 	meeting: undefined,
+	model_preferences: {},
 };
 
 const ConverseParams = Type.Object({
@@ -261,6 +261,9 @@ function defaultConfig(): MeetingConfig {
 			memos: ".pi/ceo-agents/memos/",
 			agents: ".pi/ceo-agents/agents/",
 		},
+		models: {
+			default: "current",
+		},
 		board: BOARD_MEMBER_DEFINITIONS.map((definition) => ({
 			name: definition.display_name,
 			path: definition.default_prompt_path,
@@ -383,6 +386,12 @@ async function writeScratchPad(run: RuntimeRun, config: MeetingConfig): Promise<
 		`- Duration: ${formatDurationFromMs(run.state.elapsed_ms)}`,
 		`- Budget Range: ${formatFloatUsd(budgetMin)} - ${formatFloatUsd(budgetMax)}`,
 		`- Budget Used: ${formatUsdFromMicros(run.state.cost_usd_micros)}`,
+		...(run.state.models
+			? [
+				`- CEO Model: ${formatModelSelection(run.state.models.ceo)}`,
+				`- Board Model: ${formatModelSelection(run.state.models.board)}`,
+			]
+			: []),
 		"",
 		"## Active Members",
 		...run.state.active_member_keys.map((memberKey) => {
@@ -446,8 +455,20 @@ function memberUiLabel(status: string): string {
 	}
 }
 
+function modelsForDisplay(ctx: ExtensionContext, config: MeetingConfig, run?: RuntimeRun): BoardroomModelSelections | undefined {
+	if (run?.state.models) return run.state.models;
+	try {
+		return resolveBoardroomModels(config, ctx.model, { overrides: runtime.model_preferences });
+	} catch {
+		return undefined;
+	}
+}
+
 function updateWidget(ctx: ExtensionContext, config: MeetingConfig, run?: RuntimeRun): void {
 	const editor = config.meeting.constraints.editor ?? DEFAULT_EDITOR;
+	const models = modelsForDisplay(ctx, config, run);
+	const ceoModelLabel = models ? formatModelSelection(models.ceo) : "current model not selected";
+	const boardModelLabel = models ? formatModelSelection(models.board) : "current model not selected";
 	const lines: string[] = [];
 	lines.push(colorHex(PANEL_BORDER, EXTENSION_TITLE));
 	lines.push(
@@ -457,12 +478,12 @@ function updateWidget(ctx: ExtensionContext, config: MeetingConfig, run?: Runtim
 	);
 	lines.push("");
 	lines.push(colorHex(PANEL_DIM, "Board"));
-	lines.push(`${colorHex(CEO_COLOR, "CEO")}  ${MODELS.ceo.label}`);
+	lines.push(`${colorHex(CEO_COLOR, "CEO")}  ${ceoModelLabel}`);
 	for (const member of config.board) {
 		const definition = boardMemberDefinitionFromDisplayName(member.name);
 		const state = definition && run ? run.state.members[definition.key]?.status : undefined;
 		lines.push(
-			`${colorHex(member.color, member.name)}  ${MODELS.board.label}  ${colorHex(PANEL_MUTED, memberUiLabel(state ?? "idle"))}`,
+			`${colorHex(member.color, member.name)}  ${boardModelLabel}  ${colorHex(PANEL_MUTED, memberUiLabel(state ?? "idle"))}`,
 		);
 	}
 	lines.push("");
@@ -537,6 +558,35 @@ function findModel(registry: ExtensionContext["modelRegistry"], provider: string
 	const exact = registry.find(provider, id);
 	if (exact) return exact;
 	return registry.getAll().find((model) => model.provider === provider && String(model.id).includes(id));
+}
+
+function roleLabel(role: BoardroomModelRole): string {
+	return role === "ceo" ? "CEO" : "Board";
+}
+
+function ensureRegistryModel(
+	ctx: ExtensionContext,
+	role: BoardroomModelRole,
+	selection: PersistedModelSelection,
+): any {
+	const model = findModel(ctx.modelRegistry, selection.provider, selection.id);
+	if (!model) {
+		throw new Error(
+			`${roleLabel(role)} model not found: ${formatModelSelection(selection)}. Select a valid model with /model or configure .pi/ceo-agents/ceo-and-board-configuration.yaml models.${role}.`,
+		);
+	}
+	const registry = ctx.modelRegistry as { hasConfiguredAuth?: (model: any) => boolean };
+	if (registry.hasConfiguredAuth && !registry.hasConfiguredAuth(model)) {
+		throw new Error(`${roleLabel(role)} model is unavailable or missing auth: ${formatModelSelection(selection)}`);
+	}
+	return model;
+}
+
+function resolveRunModels(ctx: ExtensionContext, config: MeetingConfig, run: RuntimeRun): BoardroomModelSelections {
+	if (run.state.models) return run.state.models;
+	const models = resolveBoardroomModels(config, ctx.model, { overrides: runtime.model_preferences });
+	run.state.models = models;
+	return models;
 }
 
 function getPiInvocation(): { command: string; argsPrefix: string[] } {
@@ -841,6 +891,97 @@ async function restoreStateFromBranch(ctx: ExtensionContext): Promise<RuntimeRun
 	return undefined;
 }
 
+function selectorToModelPreference(selector: string): ModelPreference {
+	const parsed = parseModelLocator(selector);
+	return parsed === "current" ? "current" : parsed;
+}
+
+function configuredModelSummary(config: MeetingConfig, role: BoardroomModelRole): string {
+	return formatModelPreference(config.models?.[role] ?? config.models?.default);
+}
+
+function sessionOverrideSummary(role: BoardroomModelRole): string {
+	const preference = runtime.model_preferences[role];
+	return preference ? formatModelPreference(preference) : "none";
+}
+
+async function sendModelStatus(pi: ExtensionAPI, ctx: ExtensionCommandContext, config: MeetingConfig): Promise<void> {
+	const lines = ["Boardroom model selection", ""];
+	try {
+		const models = runtime.meeting?.state.models ?? resolveBoardroomModels(config, ctx.model, { overrides: runtime.model_preferences });
+		lines.push(`Effective CEO: ${formatModelSelection(models.ceo)}`);
+		lines.push(`Effective Board: ${formatModelSelection(models.board)}`);
+	} catch (error) {
+		lines.push(`Effective models: unavailable (${error instanceof Error ? error.message : String(error)})`);
+	}
+	lines.push("");
+	lines.push(`Configured CEO: ${configuredModelSummary(config, "ceo")}`);
+	lines.push(`Configured Board: ${configuredModelSummary(config, "board")}`);
+	lines.push(`Session CEO override: ${sessionOverrideSummary("ceo")}`);
+	lines.push(`Session Board override: ${sessionOverrideSummary("board")}`);
+	lines.push("");
+	lines.push("Usage:");
+	lines.push("- /model — change Pi's current model when Boardroom is set to current");
+	lines.push("- /ceo-models ceo <provider/model-id>");
+	lines.push("- /ceo-models board <provider/model-id>");
+	lines.push("- /ceo-models both current");
+	lines.push("- /ceo-models reset");
+	lines.push("");
+	lines.push("Persistent defaults live in .pi/ceo-agents/ceo-and-board-configuration.yaml under models.");
+	if (runtime.meeting?.state.models) lines.push("Active runs use the model snapshot captured at launch.");
+
+	pi.sendMessage({
+		customType: UPDATE_MESSAGE_TYPE,
+		content: lines.join("\n"),
+		display: true,
+		details: { label: "Models", color: CEO_COLOR },
+	});
+	updateWidget(ctx, config, runtime.meeting);
+}
+
+async function handleModelCommand(rawArgs: string, ctx: ExtensionCommandContext, pi: ExtensionAPI): Promise<void> {
+	const config = runtime.config ?? (runtime.config = await readConfig(ctx.cwd));
+	const args = rawArgs.trim();
+	if (!args || args.toLowerCase() === "show") {
+		await sendModelStatus(pi, ctx, config);
+		return;
+	}
+	if (args.toLowerCase() === "reset") {
+		runtime.model_preferences = {};
+		ctx.ui.notify("Boardroom model session overrides reset.", "info");
+		await sendModelStatus(pi, ctx, config);
+		return;
+	}
+
+	const tokens = args.split(/\s+/).filter(Boolean);
+	const first = (tokens[0] ?? "").toLowerCase();
+	const target: BoardroomModelRole | "both" = first === "ceo" || first === "board" || first === "both" ? first : "both";
+	const selector = target === "both" && first !== "both" ? args : tokens.slice(1).join(" ");
+	if (!selector.trim()) {
+		ctx.ui.notify("Usage: /ceo-models [ceo|board|both] <current|provider/model-id>", "error");
+		return;
+	}
+
+	const previous = { ...runtime.model_preferences };
+	try {
+		const preference = selectorToModelPreference(selector);
+		const next: BoardroomModelPreferences = { ...runtime.model_preferences };
+		const roles: BoardroomModelRole[] = target === "both" ? ["ceo", "board"] : [target];
+		for (const role of roles) next[role] = preference;
+		runtime.model_preferences = next;
+
+		const models = resolveBoardroomModels(config, ctx.model, { overrides: runtime.model_preferences });
+		ensureRegistryModel(ctx, "ceo", models.ceo);
+		ensureRegistryModel(ctx, "board", models.board);
+
+		ctx.ui.notify(`Boardroom ${target} model set to ${formatModelPreference(preference)} for this Pi session.`, "info");
+		await sendModelStatus(pi, ctx, config);
+	} catch (error) {
+		runtime.model_preferences = previous;
+		ctx.ui.notify(error instanceof Error ? error.message : String(error), "error");
+	}
+}
+
 async function startDeliberation(requestedId: string, ctx: ExtensionCommandContext, pi: ExtensionAPI): Promise<void> {
 	let config: MeetingConfig | undefined;
 	await debugLog(ctx.cwd, `startDeliberation requested_id=${JSON.stringify(requestedId)}`);
@@ -868,6 +1009,12 @@ async function startDeliberation(requestedId: string, ctx: ExtensionCommandConte
 			return;
 		}
 
+		const selectedModels = resolveBoardroomModels(config, ctx.model, { overrides: runtime.model_preferences });
+		const ceoRegistryModel = ensureRegistryModel(ctx, "ceo", selectedModels.ceo);
+		ensureRegistryModel(ctx, "board", selectedModels.board);
+		const changed = await pi.setModel(ceoRegistryModel);
+		if (!changed) throw new Error(`CEO model unavailable: ${formatModelSelection(selectedModels.ceo)}`);
+
 		const runId = `${selectedBrief.id}-${shortRunToken()}`;
 		await debugLog(ctx.cwd, `startDeliberation run_id=${runId}`);
 		await supersedeOpenRunsForBrief(ctx.cwd, config, selectedBrief.id, runId);
@@ -882,6 +1029,7 @@ async function startDeliberation(requestedId: string, ctx: ExtensionCommandConte
 			run_id: runId,
 			member_session_root_rel: SESSION_ROOT_REL,
 		});
+		run.state.models = selectedModels;
 
 		await ensureDir(run.deliberation_dir_abs);
 		await ensureDir(run.board_output_dir_abs);
@@ -896,6 +1044,7 @@ async function startDeliberation(requestedId: string, ctx: ExtensionCommandConte
 		await persistRunState(run);
 		await writeScratchPad(run, config);
 		await recordUpdate(run, "meeting_started", {
+			models: run.state.models,
 			paths: {
 				brief: run.state.paths.brief,
 				scratch_pad: run.state.paths.scratch_pad,
@@ -908,12 +1057,6 @@ async function startDeliberation(requestedId: string, ctx: ExtensionCommandConte
 			runId: run.state.run_id,
 			statePath: run.state.paths.state,
 		});
-
-		const ceoModel = findModel(ctx.modelRegistry, MODELS.ceo.provider, MODELS.ceo.id);
-		if (ceoModel) {
-			const changed = await pi.setModel(ceoModel);
-			if (!changed) ctx.ui.notify(`CEO model unavailable: ${MODELS.ceo.label}`, "warning");
-		}
 
 		run.state.status = "running";
 		await persistRunState(run);
@@ -1008,6 +1151,13 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 		},
 	});
 
+	pi.registerCommand("ceo-models", {
+		description: "Show or set Boardroom CEO/board model selections for this Pi session",
+		handler: async (rawArgs, ctx) => {
+			await handleModelCommand(rawArgs, ctx, pi);
+		},
+	});
+
 	pi.registerTool({
 		name: "converse",
 		label: "Converse",
@@ -1043,6 +1193,9 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 						isError: true,
 					};
 				}
+
+				const models = resolveRunModels(ctx, config, run);
+				ensureRegistryModel(ctx, "board", models.board);
 
 				const subject = params.subject.trim();
 				const prompt = params.prompt.trim();
@@ -1081,8 +1234,8 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 						sessionDir: run.member_session_dirs_abs[definition.key],
 						memberKey: definition.key,
 						displayName: member.name,
-						modelId: MODELS.board.id,
-						provider: MODELS.board.provider,
+						modelId: models.board.id,
+						provider: models.board.provider,
 						systemPrompt: `${persona.trim()}\n\n${boardInstruction(member)}`,
 						prompt: buildBoardPrompt(run, member, subject, prompt),
 						onProgress: (message) =>
@@ -1193,6 +1346,10 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 					};
 				}
 
+				const models = resolveRunModels(ctx, config, run);
+				ensureRegistryModel(ctx, "board", models.board);
+				ensureRegistryModel(ctx, "ceo", models.ceo);
+
 				ctx.ui.setWorkingMessage("Collecting final board positions...");
 				onUpdate?.({
 					content: [{ type: "text", text: "Collecting final board positions..." }],
@@ -1214,8 +1371,8 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 						sessionDir: run.member_session_dirs_abs[memberKey],
 						memberKey,
 						displayName: member.name,
-						modelId: MODELS.board.id,
-						provider: MODELS.board.provider,
+						modelId: models.board.id,
+						provider: models.board.provider,
 						systemPrompt: `${persona.trim()}\n\n${boardInstruction(member)}`,
 						prompt: buildBoardPrompt(run, member, "Final Position", closingInstruction(params.closing_prompt)),
 						onProgress: (message) =>
@@ -1261,8 +1418,8 @@ export default function ceoBoardExtension(pi: ExtensionAPI) {
 					sessionDir: path.join(resolveRepoPath(ctx.cwd, SESSION_ROOT_REL), "ceo"),
 					memberKey: "ceo",
 					displayName: "CEO",
-					modelId: MODELS.ceo.id,
-					provider: MODELS.ceo.provider,
+					modelId: models.ceo.id,
+					provider: models.ceo.provider,
 					systemPrompt: [
 						"You are the CEO synthesizing a final board memo.",
 						"Be decisive, explicit, and grounded in the board evidence.",

@@ -23,6 +23,13 @@ paths:
   memos: .pi/ceo-agents/memos/
   agents: .pi/ceo-agents/agents/
 
+# Boardroom model policy. "current" inherits Pi's selected model; use /model or
+# /ceo-models to switch during a session, or set provider/model IDs here.
+models:
+  default: current
+  # ceo: openai-codex/gpt-5.4
+  # board: openai-codex/gpt-5.4-mini
+
 board:
   - name: Revenue
     path: .pi/ceo-agents/agents/revenue.md

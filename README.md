@@ -72,7 +72,8 @@ Project-local Pi settings live in `.pi/settings.json` and load:
 
 - the Boardroom extension
 - the bundled `ceo-board-synthwave` theme
-- the default provider and model configuration
+
+They intentionally do **not** pin a provider/model; Boardroom inherits Pi's currently selected model by default so it works with OAuth/subscription-backed providers, local models, or API-key providers.
 
 ## Operator entrypoints
 
@@ -80,6 +81,14 @@ Kick off a board session with either:
 
 - `/ceo-begin`
 - `ceo-begin <brief-id>`
+
+Model selection:
+
+- Boardroom defaults to `models.default: current` in `.pi/ceo-agents/ceo-and-board-configuration.yaml`, which means both the CEO and board workers inherit Pi's selected model.
+- Use Pi's `/model` picker before `/ceo-begin` to choose the current model.
+- Use `/ceo-models` to inspect the effective CEO/board models for the session.
+- Use `/ceo-models ceo <provider/model-id>`, `/ceo-models board <provider/model-id>`, or `/ceo-models both current` for session-only overrides.
+- For persistent role-specific defaults, edit the YAML `models` block, for example `ceo: openai-codex/gpt-5.4` and `board: mac-studio-lmstudio/google/gemma-4-31b`.
 
 Example:
 

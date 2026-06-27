@@ -9,6 +9,7 @@ tasks:
       acceptance:
         - package.json and tsconfig.json exist for the Pi extension workspace.
         - .pi/ceo-agents contains config, personas, briefs, and theme assets.
+      status: completed
     - id: task-2
       title: Implement the CEO and Board Pi extension
       steps:
@@ -19,6 +20,7 @@ tasks:
         - The extension compiles against @mariozechner/pi-coding-agent.
         - The control plane uses Pi subprocess workers for board members.
         - The extension exposes the required command, tools, and synthwave-oriented TUI surfaces.
+      status: completed
     - id: task-3
       title: Verify and document the boardroom runtime
       steps:
@@ -29,6 +31,7 @@ tasks:
         - npm run check passes.
         - npm run build passes.
         - small check --strict passes.
+      status: completed
     - id: task-4
       title: Harden boardroom artifacts and lifecycle contracts
       steps:
@@ -39,6 +42,7 @@ tasks:
         - Persisted boardroom artifacts are versioned and contain no machine-local absolute paths.
         - Memo, state, and TUI accounting derive from canonical micro-USD and elapsed-ms sources.
         - Recovery repairs stale active runs into terminal states and the hardening test suite passes.
+      status: completed
     - id: task-5
       title: Reposition Boardroom as an opinionated Pi workflow and executive deliberation pack, not a standalone umbrella system.
       status: completed
@@ -53,3 +57,14 @@ tasks:
         - "boardroom init and boardroom start are available through the package bin."
         - "npm pack --dry-run includes the intended runtime assets and succeeds after validation."
         - "README documents the npm install path and release checks."
+    - id: task-7
+      title: Make Boardroom model selection configurable and provider-agnostic
+      steps:
+        - Remove Anthropic-pinned defaults from project-local Pi settings and extension runtime.
+        - Add YAML, environment, current-model, and session override resolution for CEO and board roles.
+        - Add /ceo-models operator command, persisted run model snapshots, docs, and tests.
+      acceptance:
+        - Boardroom can inherit Pi's current selected model by default.
+        - CEO and board worker models can be configured independently without code changes.
+        - Typecheck, automated tests, and strict SMALL validation pass.
+      status: completed

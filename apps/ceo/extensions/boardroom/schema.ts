@@ -74,6 +74,26 @@ export interface PersistedRunPaths {
 	scratch_pad: string;
 }
 
+export interface ModelLocatorConfig {
+	provider: string;
+	id: string;
+	label?: string;
+}
+
+export type ModelPreference = string | ModelLocatorConfig;
+
+export interface PersistedModelSelection {
+	provider: string;
+	id: string;
+	label: string;
+}
+
+export interface BoardroomModelsConfig {
+	default?: ModelPreference;
+	ceo?: ModelPreference;
+	board?: ModelPreference;
+}
+
 export interface PersistedMemberState {
 	key: BoardMemberKey;
 	display_name: BoardRoleName;
@@ -96,6 +116,10 @@ export interface PersistedRunState {
 	elapsed_ms: number;
 	cost_usd_micros: number;
 	paths: PersistedRunPaths;
+	models?: {
+		ceo: PersistedModelSelection;
+		board: PersistedModelSelection;
+	};
 	members: Record<BoardMemberKey, PersistedMemberState>;
 	active_member_keys: BoardMemberKey[];
 	vote_summary?: VoteSummary;
@@ -164,6 +188,7 @@ export interface MeetingConfig {
 		memos: string;
 		agents: string;
 	};
+	models?: BoardroomModelsConfig;
 	board: BoardMemberConfig[];
 }
 

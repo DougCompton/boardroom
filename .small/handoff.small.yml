@@ -1,12 +1,10 @@
 small_version: "1.0.0"
 owner: agent
-summary: The Pi boardroom implementation is hardened. Artifacts now persist as versioned relative-path contracts, cost uses canonical micro-USD, duration uses canonical elapsed-ms, stale runs recover into terminal states, memo rendering is driven from canonical state, and targeted hardening tests are green.
+summary: >-
+    Boardroom now uses configurable provider-agnostic model selection instead of hardcoded Anthropic models. Default policy is models.default: current, /ceo-models supports session overrides, active runs persist CEO/board model snapshots, docs/tests are updated, and validation passed.
 resume:
-    next_steps:
-        - Launch Pi with `pi -e apps/ceo/extensions/ceo-and-board.ts`
-        - Run `/ceo-begin` on a fresh brief and inspect the newly written `state.json` and `memo.md` for the canonical v1 artifact contract
-        - Decide whether to migrate older closed historical deliberations or leave them in legacy form until they are touched again
+    next_steps: []
 links: []
 replayId:
-    value: 840085fc39934e12924d1cfa912a7b1dd3fcd255658447526d651d06347146db
+    value: 17dc0c90e0cfa8716487c70ab73911c5789105b44cde045112b39464e2b3df62
     source: auto
